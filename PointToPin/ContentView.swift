@@ -7,7 +7,7 @@ struct ContentView: View {
         VStack {
             switch locationDataManager.locationManager.authorizationStatus {
             case .authorizedWhenInUse:
-                Text("Your current location is:")
+                Text("Your current location is:").boldLabel(color: .red)
                 Text("Latitude: \(locationDataManager.locationManager.location?.coordinate.latitude.description ?? "Error loading")")
                 Text("Longitude: \(locationDataManager.locationManager.location?.coordinate.longitude.description ?? "Error loading")")
                 

@@ -12,3 +12,32 @@ struct BlueButton: ButtonStyle {
             .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
     }
 }
+
+struct RoundedTextField: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding()
+            .background(Color.gray.opacity(0.2))
+            .cornerRadius(10)
+            .shadow(color: Color.gray.opacity(0.2), radius: 4, x: 0, y: 2)
+    }
+}
+
+struct BoldLabel: ViewModifier {
+    var color: Color
+    var fontSize: CGFloat
+    
+    func body(content: Content) -> some View {
+        content.font(.system(size: fontSize, weight: .bold)).foregroundColor(color).padding(5)
+    }
+}
+
+extension View {
+    func roundedTextField() -> some View {
+        self.modifier(RoundedTextField())
+    }
+    
+    func boldLabel(color: Color = .white, fontSize: CGFloat = 16) -> some View {
+        self.modifier(BoldLabel(color: color, fontSize: fontSize))
+    }
+}
