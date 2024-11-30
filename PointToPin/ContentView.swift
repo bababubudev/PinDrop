@@ -1,30 +1,30 @@
 import SwiftUI
+import MapKit
 
 struct ContentView: View {
-    @StateObject var locationDataManager = LocationDataManager()
+    @StateObject private var viewModel = MapViewModel()
     
     var body: some View {
         VStack {
-            switch locationDataManager.locationManager.authorizationStatus {
-            case .authorizedWhenInUse:
-                Text("Your current location is:").boldLabel(color: .red)
-                Text("Latitude: \(locationDataManager.locationManager.location?.coordinate.latitude.description ?? "Error loading")")
-                Text("Longitude: \(locationDataManager.locationManager.location?.coordinate.longitude.description ?? "Error loading")")
-                
-            case .restricted, .denied:
-                Text("Current location data was restricted or denied.")
-                Button("Open Permission Settings") {
-                    openAppSettings()
-                }
-                .buttonStyle(BlueButton())
-            case .notDetermined:
-                Text("Finding your location...")
-                ProgressView()
-            default:
-                ProgressView()
-            }
+            Map(coordinateRegion: $viewModel.region,
+                interactionModes: .all,
+                showsUserLocation: true,
+                annotationItems: viewModel.annotations
+            ) {
+                place in MapPin(coordinate: place.coordinate, tint: .red)
+            }.ignoresSafeArea()
         }
         .padding()
+        
+        HStack {
+            Button("Add Location") {
+                viewModel.addCurrentLocation()
+            }.buttonStyle(BlueButton())
+            
+            Button("Reset Pins") {
+                viewModel.resetLocations()
+            }.buttonStyle(RedButton())
+        }
     }
     
     private func openAppSettings() {
