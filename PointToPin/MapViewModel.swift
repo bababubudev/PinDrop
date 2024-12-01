@@ -10,40 +10,72 @@ class MapViewModel: ObservableObject {
  
     @Published var annotations: [Location] = []
     private var subscriptions = Set<AnyCancellable>()
-    private var locationDataManager: LocationDataManager
+    private let locationManager: CLLocationManager
     
-    init(locationDataManager: LocationDataManager = LocationDataManager()) {
-        self.locationDataManager = locationDataManager
-        observeAuthorizationChange()
+    init() {
+        self.locationManager = CLLocationManager()
+        
+        setupLocationManager()
+        loadLocations()
     }
     
-    private func observeAuthorizationChange() {
-        locationDataManager.$authorizationStatus
-            .sink { [weak self] status in
+    private func setupLocationManager() {
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+        
+        locationManager.publisher(for: \.location)
+            .compactMap { $0 }
+            .sink { [ weak self ] location in
                 guard let self = self else { return }
-                if status == .authorizedWhenInUse, let location = self.locationDataManager.locationManager.location {
-                    self.region.center = location.coordinate
-                }
+                self.region.center = location.coordinate
             }
             .store(in: &subscriptions)
     }
     
     func addCurrentLocation() {
-        guard let coordinate = locationDataManager.locationManager.location?.coordinate else { return }
-        let newLocation = Location(name: "Unnamed", coordinate: coordinate)
+        guard let location = locationManager.location else {
+            print("Current location not available")
+            return
+        }
+        
+        let coordinate = location.coordinate
+        let latFormatted = Int(floor(coordinate.latitude))
+        let longFormatted = Int(floor(coordinate.longitude))
+        
+        addLocation(name: "@\(latFormatted), @\(longFormatted)", at: coordinate)
+    
+    }
+    
+    func addLocation(name: String, at coord: CLLocationCoordinate2D) {
+        print("Adding location: \(name) at \(coord.latitude), \(coord.longitude)")
+        let locationName = name.isEmpty ? "Unnamed" : name
+        let newLocation = Location(name: locationName, coordinate: coord)
         annotations.append(newLocation)
+        print("Annotations count after adding: \(annotations.count)")
         saveLocations()
     }
     
+    
     func saveLocations() {
-        let encoded = try? JSONEncoder().encode(annotations)
-        UserDefaults.standard.set(encoded, forKey: "SavedLocations")
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(annotations)
+            UserDefaults.standard.set(data, forKey: "SavedLocations")
+            print("Location Saved!")
+        } catch {
+            print("Error saving location: \(error)")
+        }
     }
     
     func loadLocations() {
-        if let data = UserDefaults.standard.data(forKey: "SavedLocations"),
-           let decoded = try? JSONDecoder().decode([Location].self, from: data) {
-            annotations = decoded
+        guard let data = UserDefaults.standard.data(forKey: "SavedLocations") else { return }
+        
+        do {
+            let decoder = JSONDecoder()
+            annotations = try decoder.decode([Location].self, from: data)
+        } catch {
+            print("Error loading locations: \(error)")
         }
     }
     
