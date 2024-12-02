@@ -9,6 +9,8 @@ class MapViewModel: ObservableObject {
     )
  
     @Published var annotations: [Location] = []
+    @Published var isLoading = true
+    
     private var subscriptions = Set<AnyCancellable>()
     private let locationManager: CLLocationManager
     
@@ -16,7 +18,14 @@ class MapViewModel: ObservableObject {
         self.locationManager = CLLocationManager()
         
         setupLocationManager()
-        loadLocations()
+        loadLocationsWithDelay()
+    }
+    
+    private func loadLocationsWithDelay() {
+        DispatchQueue.main.asyncAfter(deadline: .now()) { [weak self] in
+            self?.loadLocations()
+            self?.isLoading = false
+        }
     }
     
     private func setupLocationManager() {
@@ -33,29 +42,27 @@ class MapViewModel: ObservableObject {
             .store(in: &subscriptions)
     }
     
-    func addCurrentLocation() {
+    func addCurrentLocation(name: String) {
         guard let location = locationManager.location else {
             print("Current location not available")
             return
         }
         
         let coordinate = location.coordinate
-        let latFormatted = Int(floor(coordinate.latitude))
-        let longFormatted = Int(floor(coordinate.longitude))
-        
-        addLocation(name: "@\(latFormatted), @\(longFormatted)", at: coordinate)
-    
+        addLocation(name: name, at: coordinate)
     }
     
     func addLocation(name: String, at coord: CLLocationCoordinate2D) {
-        print("Adding location: \(name) at \(coord.latitude), \(coord.longitude)")
         let locationName = name.isEmpty ? "Unnamed" : name
         let newLocation = Location(name: locationName, coordinate: coord)
         annotations.append(newLocation)
-        print("Annotations count after adding: \(annotations.count)")
         saveLocations()
     }
     
+    func deleteLocation(_ location: Location) {
+        annotations.removeAll { $0.id == location.id }
+        saveLocations()
+    }
     
     func saveLocations() {
         do {
@@ -77,6 +84,11 @@ class MapViewModel: ObservableObject {
         } catch {
             print("Error loading locations: \(error)")
         }
+    }
+    
+    func centerOnLocation(_ location: Location) {
+        region.center = location.coordinate
+        print("Centered!")
     }
     
     func resetLocations() {

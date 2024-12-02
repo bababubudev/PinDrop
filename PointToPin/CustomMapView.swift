@@ -10,8 +10,9 @@ struct CustomMapView: UIViewRepresentable {
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
+        mapView.showsUserLocation = true
+        mapView.showsUserTrackingButton = true
         mapView.isUserInteractionEnabled = true
-        mapView.setRegion(region, animated: true)
         
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
         mapView.addGestureRecognizer(tapGesture)

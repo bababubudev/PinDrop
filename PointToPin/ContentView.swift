@@ -5,68 +5,114 @@ struct ContentView: View {
     @StateObject private var viewModel = MapViewModel()
     @State private var selectedCoordinate: CLLocationCoordinate2D?
     
-    @State private var isLocationSheetShowing = false
+    @State private var isLocationsShowing = false
     @State private var isInputShowing = false
+    @State private var isRemoveAlertShowing = false
+    @State private var isCurrentLocationRequest = false
     @State private var pinName = ""
     
     var body: some View {
-        VStack {
-            Text("Number of Annotations: \(viewModel.annotations.count)")
-
+        ZStack {
             CustomMapView(
                 region: $viewModel.region,
                 annotations: $viewModel.annotations,
                 onMapTap: { coordinate in
                     selectedCoordinate = coordinate
+                    viewModel.region.center = coordinate
                     isInputShowing = true
                 }
             )
             .ignoresSafeArea()
-            .sheet(isPresented: $isInputShowing) {
+            .sheet(isPresented: $isInputShowing, onDismiss: {
+                isCurrentLocationRequest = false
+            }) {
                 TextFieldAlert(
                     title: "Name your pin",
                     placeholder: "eg. friend's place",
                     onSubmit: { name in
-                        guard let coordinate = selectedCoordinate else {return}
                         let locationName = name.isEmpty ? "No name": name
-                        viewModel.addLocation(name: locationName, at: coordinate)
-                        isInputShowing = false
+                        
+                        if isCurrentLocationRequest {
+                            viewModel.addCurrentLocation(name: locationName)
+                        }
+                        else {
+                            guard let coordinate = selectedCoordinate else {return}
+                            viewModel.addLocation(name: locationName, at: coordinate)
+                            isInputShowing = false
+                        }
+                        
                         pinName = ""
                     }
                 )
                 .presentationDetents([.height(200)])
                 .presentationDragIndicator(.visible)
             }
+            .sheet(isPresented: $isLocationsShowing) {
+                LocationListView(
+                    annotations: $viewModel.annotations,
+                    onSelectLocation: { location in
+                        viewModel.centerOnLocation(location)
+                        isLocationsShowing = false
+                    }
+                )
+                .presentationDetents([.height(500)])
+            }
         }
         .overlay(
             VStack {
                 Spacer()
                 HStack {
-                    Button("Pin Current Location") {
-                        viewModel.addCurrentLocation()
-                    }
-                    .buttonStyle(CustomButton(color: .white, background: .blue))
+                    Spacer()
                     
-                    Button("Reset All Pins") {
-                        viewModel.resetLocations()
+                    Menu {
+                        Button (role: .destructive, action: { isRemoveAlertShowing = true }) {
+                            Label("Remove all pins", systemImage: "trash")
+                        }.disabled(viewModel.annotations.count == 0)
+                        Button(action: {
+                            isCurrentLocationRequest = true
+                            isInputShowing = true
+                        }) {
+                            Label("Pin your location", systemImage: "location")
+                        }
+                        Button(action: {
+                            isLocationsShowing = true
+                        }) {
+                            Label("Show all pins", systemImage: "ellipsis")
+                        }
+                    } label: {
+                        VStack (spacing: 5) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Material.ultraThick)
+                                    .frame(width: 45, height: 45)
+                                    .shadow(radius: 1)
+                                
+                                Image(systemName: "ellipsis")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .shadow(radius: 1)
+                                    .frame(width: 25, height: 25)
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .padding(Edge.Set(.trailing), 5)
                     }
-                    .buttonStyle(CustomButton(color: .white, background: .red))
                 }
-                .padding()
             }
         )
-    }
-    
-    private func openAppSettings() {
-        if let url = URL(string: UIApplication.openSettingsURLString) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        .confirmationDialog(
+            "You have a total of \(viewModel.annotations.count) pins?",
+            isPresented: $isRemoveAlertShowing,
+            titleVisibility: .visible
+        ) {
+            Button("Remove All", role: .destructive) {
+                viewModel.resetLocations()
+                isRemoveAlertShowing = false
+            }
+            Button("Cancel", role: .cancel) {
+                isRemoveAlertShowing = false
+            }
         }
-    }
-    
-    private func coordinateFromTap(location: CGPoint, mapRegion: MKCoordinateRegion) -> CLLocationCoordinate2D {
-        let mapView = MKMapView()
-        mapView.region = mapRegion
-        return mapView.convert(location, toCoordinateFrom: mapView)
     }
 }
 
