@@ -24,7 +24,7 @@ class MapViewModel: NSObject, ObservableObject {
     }
     
     private func loadLocationsWithDelay() {
-        DispatchQueue.main.async { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             self?.loadLocations()
             self?.isLoading = false
         }
@@ -93,17 +93,12 @@ class MapViewModel: NSObject, ObservableObject {
         }
     }
     
-    func centerOnLocation(_ location: Location) {
-        region.center = location.coordinate
-        print("Centered!")
-    }
-    
     func resetLocations() {
         annotations.removeAll()
         saveLocations()
     }
     
-    func onRemoveAll() {
+    func centerOnCurrentLocation() {
         guard let location = locationManager.location else {
             region.center = .init(latitude: 61.4971, longitude: 23.7526)
             region.span = .init(latitudeDelta: 0.1, longitudeDelta: 0.1)
@@ -112,6 +107,12 @@ class MapViewModel: NSObject, ObservableObject {
         
         region.center = location.coordinate
     }
+  
+    func centerOnLocation(_ location: Location) {
+        region.center = location.coordinate
+        print("Centered!")
+    }
+    
 }
 
 extension MapViewModel: CLLocationManagerDelegate {

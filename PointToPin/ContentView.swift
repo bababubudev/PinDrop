@@ -66,7 +66,7 @@ struct ContentView: View {
                     
                     Menu {
                         Button (role: .destructive, action: {
-                            viewModel.onRemoveAll()
+                            viewModel.centerOnCurrentLocation()
                             isRemoveAlertShowing = true
                         }) {
                             Label("Remove all pins", systemImage: "trash")
@@ -79,6 +79,7 @@ struct ContentView: View {
                         }
                         Button(action: {
                             isLocationsShowing = true
+                            viewModel.centerOnCurrentLocation()
                         }) {
                             Label("Show all pins", systemImage: "ellipsis")
                         }
