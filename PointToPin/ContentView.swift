@@ -60,12 +60,15 @@ struct ContentView: View {
         }
         .overlay(
             VStack {
-                Spacer()
+                Spacer(minLength: 750)
                 HStack {
                     Spacer()
                     
                     Menu {
-                        Button (role: .destructive, action: { isRemoveAlertShowing = true }) {
+                        Button (role: .destructive, action: {
+                            viewModel.onRemoveAll()
+                            isRemoveAlertShowing = true
+                        }) {
                             Label("Remove all pins", systemImage: "trash")
                         }.disabled(viewModel.annotations.count == 0)
                         Button(action: {
@@ -80,24 +83,21 @@ struct ContentView: View {
                             Label("Show all pins", systemImage: "ellipsis")
                         }
                     } label: {
-                        VStack (spacing: 5) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Material.ultraThick)
-                                    .frame(width: 45, height: 45)
-                                    .shadow(radius: 1)
-                                
-                                Image(systemName: "ellipsis")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .shadow(radius: 1)
-                                    .frame(width: 25, height: 25)
-                                    .foregroundStyle(.primary)
-                            }
-                        }
-                        .padding(Edge.Set(.trailing), 5)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Material.ultraThick)
+                                .frame(width: 45, height: 45)
+                                .shadow(radius: 1)
+                            
+                            Image(systemName: "ellipsis")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 25, height: 25)
+                                .foregroundStyle(.primary)
+                        }.padding(Edge.Set(.trailing), 5)
                     }
                 }
+                Spacer(minLength: 10)
             }
         )
         .confirmationDialog(

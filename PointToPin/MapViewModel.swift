@@ -1,34 +1,37 @@
 import MapKit
-import SwiftUI
 import Combine
+import SwiftUI
 
-class MapViewModel: ObservableObject {
+class MapViewModel: NSObject, ObservableObject {
     @Published var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 60.1699, longitude: 24.9384),
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     )
  
+    @Published var locationPermissionStatus: CLAuthorizationStatus = .notDetermined
     @Published var annotations: [Location] = []
     @Published var isLoading = true
     
     private var subscriptions = Set<AnyCancellable>()
     private let locationManager: CLLocationManager
     
-    init() {
+    override init() {
         self.locationManager = CLLocationManager()
+        super.init()
         
         setupLocationManager()
         loadLocationsWithDelay()
     }
     
     private func loadLocationsWithDelay() {
-        DispatchQueue.main.asyncAfter(deadline: .now()) { [weak self] in
+        DispatchQueue.main.async { [weak self] in
             self?.loadLocations()
             self?.isLoading = false
         }
     }
     
     private func setupLocationManager() {
+        locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
@@ -40,6 +43,10 @@ class MapViewModel: ObservableObject {
                 self.region.center = location.coordinate
             }
             .store(in: &subscriptions)
+    }
+    
+    func requestLocationPermission() {
+        locationManager.requestWhenInUseAuthorization()
     }
     
     func addCurrentLocation(name: String) {
@@ -94,5 +101,31 @@ class MapViewModel: ObservableObject {
     func resetLocations() {
         annotations.removeAll()
         saveLocations()
+    }
+    
+    func onRemoveAll() {
+        guard let location = locationManager.location else {
+            region.center = .init(latitude: 61.4971, longitude: 23.7526)
+            region.span = .init(latitudeDelta: 0.1, longitudeDelta: 0.1)
+            return
+        }
+        
+        region.center = location.coordinate
+    }
+}
+
+extension MapViewModel: CLLocationManagerDelegate {
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        switch manager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationPermissionStatus = .authorizedWhenInUse
+            manager.startUpdatingLocation()
+        case .denied, .restricted:
+            locationPermissionStatus = .denied
+        case .notDetermined:
+            locationPermissionStatus = .notDetermined
+        @unknown default:
+            locationPermissionStatus = .notDetermined
+        }
     }
 }

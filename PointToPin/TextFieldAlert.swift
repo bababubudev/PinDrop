@@ -29,7 +29,9 @@ struct TextFieldAlert: View {
                 .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .padding()
                 
-                Spacer(minLength: 50)
+                Spacer(minLength: 28)
+                Divider()
+                Spacer(minLength: 25)
                 
                 Button("Cancel") {
                     dismiss()

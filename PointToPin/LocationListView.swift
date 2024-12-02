@@ -19,11 +19,11 @@ struct LocationListView: View {
                             VStack(alignment: .leading){
                                 Text(location.name).font(.headline)
                                 VStack {
-                                    Text("Latitude: \(formatDouble(val: location.coordinate.latitude))")
+                                    Text("Latitude: \(formatDouble(val: location.coordinate.latitude))°")
                                         .font(.subheadline)
                                         .foregroundColor(.gray)
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                    Text("Longitude: \(formatDouble(val: location.coordinate.longitude))")
+                                    Text("Longitude: \(formatDouble(val: location.coordinate.longitude))°")
                                         .font(.subheadline)
                                         .foregroundColor(.gray)
                                         .frame(maxWidth: .infinity, alignment: .leading)
