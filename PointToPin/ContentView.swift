@@ -72,6 +72,7 @@ struct ContentView: View {
                             Label("Remove all pins", systemImage: "trash")
                         }.disabled(viewModel.annotations.count == 0)
                         Button(action: {
+                            viewModel.centerOnCurrentLocation()
                             isCurrentLocationRequest = true
                             isInputShowing = true
                         }) {
