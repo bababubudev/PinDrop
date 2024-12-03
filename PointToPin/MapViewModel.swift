@@ -49,19 +49,19 @@ class MapViewModel: NSObject, ObservableObject {
         locationManager.requestWhenInUseAuthorization()
     }
     
-    func addCurrentLocation(name: String) {
+    func addCurrentLocation(name: String, color: Color) {
         guard let location = locationManager.location else {
             print("Current location not available")
             return
         }
         
         let coordinate = location.coordinate
-        addLocation(name: name, at: coordinate)
+        addLocation(name: name, at: coordinate, color: color)
     }
     
-    func addLocation(name: String, at coord: CLLocationCoordinate2D) {
+    func addLocation(name: String, at coord: CLLocationCoordinate2D, color: Color) {
         let locationName = name.isEmpty ? "Unnamed" : name
-        let newLocation = Location(name: locationName, coordinate: coord)
+        let newLocation = Location(name: locationName, coordinate: coord, color: color)
         annotations.append(newLocation)
         saveLocations()
     }
@@ -113,20 +113,4 @@ class MapViewModel: NSObject, ObservableObject {
         print("Centered!")
     }
     
-}
-
-extension MapViewModel: CLLocationManagerDelegate {
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        switch manager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            locationPermissionStatus = .authorizedWhenInUse
-            manager.startUpdatingLocation()
-        case .denied, .restricted:
-            locationPermissionStatus = .denied
-        case .notDetermined:
-            locationPermissionStatus = .notDetermined
-        @unknown default:
-            locationPermissionStatus = .notDetermined
-        }
-    }
 }

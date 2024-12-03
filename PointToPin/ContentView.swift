@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var isInputShowing = false
     @State private var isRemoveAlertShowing = false
     @State private var isCurrentLocationRequest = false
+
     @State private var pinName = ""
     
     var body: some View {
@@ -27,24 +28,24 @@ struct ContentView: View {
                 isCurrentLocationRequest = false
             }) {
                 TextFieldAlert(
-                    title: "Name your pin",
+                    title: "Write the name for pin",
                     placeholder: "eg. friend's place",
-                    onSubmit: { name in
+                    onSubmit: { name, color in
                         let locationName = name.isEmpty ? "No name": name
                         
                         if isCurrentLocationRequest {
-                            viewModel.addCurrentLocation(name: locationName)
+                            viewModel.addCurrentLocation(name: locationName, color: color)
                         }
                         else {
                             guard let coordinate = selectedCoordinate else {return}
-                            viewModel.addLocation(name: locationName, at: coordinate)
-                            isInputShowing = false
+                            viewModel.addLocation(name: locationName, at: coordinate, color: color)
                         }
                         
                         pinName = ""
+                        isInputShowing = false
                     }
                 )
-                .presentationDetents([.height(200)])
+                .presentationDetents([.height(300)])
                 .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $isLocationsShowing) {

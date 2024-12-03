@@ -1,6 +1,17 @@
 import SwiftUI
 import MapKit
 
+class ColoredAnnotation: MKPointAnnotation {
+    let color: Color
+    
+    init(coordinate: CLLocationCoordinate2D, title: String, color: Color) {
+        self.color = color
+        super.init()
+        self.coordinate = coordinate
+        self.title = title
+    }
+}
+
 struct CustomMapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
     @Binding var annotations: [Location]
@@ -25,9 +36,12 @@ struct CustomMapView: UIViewRepresentable {
         uiView.removeAnnotations(uiView.annotations)
         
         let mapAnnotations = annotations.map { location -> MKPointAnnotation in
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = location.coordinate
-            annotation.title = location.name
+            let annotation = ColoredAnnotation (
+                coordinate: location.coordinate,
+                title: location.name,
+                color: location.color
+            )
+            
             return annotation
         }
         
@@ -45,6 +59,29 @@ struct CustomMapView: UIViewRepresentable {
             self.parent = parent
         }
         
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            guard !annotation.isKind(of: MKUserLocation.self) else { return nil }
+            
+            guard let coloredAnnotation = annotation as? ColoredAnnotation else { return nil }
+            
+            let identifier = "ColoredPin"
+            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
+            
+            if annotationView == nil {
+                annotationView = MKMarkerAnnotationView(annotation: coloredAnnotation, reuseIdentifier: identifier)
+                annotationView?.canShowCallout = true
+            } else {
+                annotationView?.annotation = coloredAnnotation
+            }
+            
+            if let markerAnnotationView = annotationView as? MKMarkerAnnotationView {
+                let uiColor = UIColor(coloredAnnotation.color)
+                markerAnnotationView.markerTintColor = uiColor
+            }
+            
+            return annotationView
+        }
+
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let mapView = gesture.view as? MKMapView else { return }
             let point = gesture.location(in: mapView)

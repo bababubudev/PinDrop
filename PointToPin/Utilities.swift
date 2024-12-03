@@ -17,6 +17,7 @@ struct CustomButton: ButtonStyle {
     }
 }
 
+
 struct RoundedTextField: ViewModifier {
     func body(content: Content) -> some View {
         content
@@ -43,5 +44,44 @@ extension View {
     
     func boldLabel(color: Color = .white, fontSize: CGFloat = 16) -> some View {
         self.modifier(BoldLabel(color: color, fontSize: fontSize))
+    }
+}
+
+extension MapViewModel: CLLocationManagerDelegate {
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        switch manager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            locationPermissionStatus = .authorizedWhenInUse
+            manager.startUpdatingLocation()
+        case .denied, .restricted:
+            locationPermissionStatus = .denied
+        case .notDetermined:
+            locationPermissionStatus = .notDetermined
+        @unknown default:
+            locationPermissionStatus = .notDetermined
+        }
+    }
+}
+
+extension Color {
+    func toHex() -> String {
+        guard let components = cgColor?.components else { return "#FF0000" }
+        let r = Int(components[0] * 255)
+        let g = Int(components[1] * 255)
+        let b = Int(components[2] * 255)
+        return String(format: "#%02X%02X%02X", r, g, b)
+    }
+    
+    init?(hex: String) {
+        var hex = hex
+        if hex.hasPrefix("#") {
+            hex.removeFirst()
+        }
+        guard hex.count == 6, let rgb = Int(hex, radix: 16) else { return nil }
+        self.init(
+            red: Double((rgb >> 16) & 0xFF) / 255.0,
+            green: Double((rgb >> 8) & 0xFF) / 255.0,
+            blue: Double(rgb & 0xFF) / 255.0
+        )
     }
 }
