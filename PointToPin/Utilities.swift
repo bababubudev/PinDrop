@@ -17,14 +17,41 @@ struct CustomButton: ButtonStyle {
     }
 }
 
+struct CustomSearchField: View {
+    @Binding var text: String
+    @Binding var isSearchActive: Bool
+    @FocusState var isFocus: Bool
 
-struct RoundedTextField: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .padding()
-            .background(Color.gray.opacity(0.2))
-            .cornerRadius(10)
-            .shadow(color: Color.gray.opacity(0.2), radius: 4, x: 0, y: 2)
+    var body: some View {
+        HStack {
+            Button(action: {
+                withAnimation {
+                    isSearchActive.toggle()
+                    isFocus = isSearchActive
+                }
+            }) {
+                Image(systemName: "magnifyingglass")
+                    .aspectRatio(contentMode: .fit)
+                    .foregroundColor(isSearchActive ? .gray : .accent)
+            }
+            
+            if isSearchActive {
+                TextField("Search...", text: $text)
+                    .transition(.move(edge: .leading))
+                    .focused($isFocus)
+            }
+        
+        }
+        .background(
+            VStack {
+                Spacer()
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(.gray)
+                    .padding(.leading, 28)
+            }
+        )
+        .padding(.horizontal, 16)
     }
 }
 
@@ -38,10 +65,6 @@ struct BoldLabel: ViewModifier {
 }
 
 extension View {
-    func roundedTextField() -> some View {
-        self.modifier(RoundedTextField())
-    }
-    
     func boldLabel(color: Color = .white, fontSize: CGFloat = 16) -> some View {
         self.modifier(BoldLabel(color: color, fontSize: fontSize))
     }
@@ -84,4 +107,8 @@ extension Color {
             blue: Double(rgb & 0xFF) / 255.0
         )
     }
+}
+
+#Preview {
+    ContentView()
 }

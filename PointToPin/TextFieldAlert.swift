@@ -93,7 +93,7 @@ struct TextFieldAlert: View {
                     .transition(.opacity)
 
             }
-            .disabled(inputText.isEmpty)
+            .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }.padding()
     }
 }
