@@ -2,8 +2,10 @@
 
 A modern iOS application that allows users to search locations, drop pins on a map, and manage saved locations with a clean SwiftUI interface.
 
-<img src="https://github.com/user-attachments/assets/b7e916a1-351d-4108-8c90-a8ffc1b2cfe0" altSrc="Screenshot_2" width=260 />
-<img src="https://github.com/user-attachments/assets/14d4c294-d867-4fca-ba36-d68999450f27" altSrc="Screenshot" width=260 />
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/b7e916a1-351d-4108-8c90-a8ffc1b2cfe0" altSrc="Screenshot_2" width=250 />
+  <img src="https://github.com/user-attachments/assets/14d4c294-d867-4fca-ba36-d68999450f27" altSrc="Screenshot" width=250 />
+</div>
 
 ## Features
 
